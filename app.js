@@ -677,7 +677,20 @@ async function handleInventoryImport(e) {
   const file = document.getElementById('inventory-file').files[0];
   if (!file) return;
 
-  const rows = parseCSV((await file.text()).replace(/^\uFEFF/, ''));
+  try {
+    const isExcel = /\.(xlsx|xls)$/i.test(file.name);
+    let rows;
+    if (isExcel) {
+      if (!window.XLSX) {
+        showImportMessage('Excel support is still loading. Please try again in a moment.', 'error');
+        return;
+      }
+      const workbook = window.XLSX.read(await file.arrayBuffer(), { type: 'array' });
+      const sheet = workbook.Sheets[workbook.SheetNames[0]];
+      rows = window.XLSX.utils.sheet_to_json(sheet, { header: 1, defval: '', raw: false });
+    } else {
+      rows = parseCSV((await file.text()).replace(/^\uFEFF/, ''));
+    }
   if (rows.length < 2) { showImportMessage('The spreadsheet must include a header row and at least one item.', 'error'); return; }
 
   const headers = rows[0].map(normalizedHeader);
@@ -724,6 +737,9 @@ async function handleInventoryImport(e) {
   document.getElementById('inventory-import-form').reset();
   showImportMessage(`${items.length} item(s) imported successfully.`, 'success');
   toast('Inventory imported.');
+  } catch (error) {
+    showImportMessage('Could not read this spreadsheet. Use the downloaded template and try again.', 'error');
+  }
 }
 
 function downloadInventoryTemplate() {

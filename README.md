@@ -23,7 +23,7 @@ Just open `index.html` in any modern browser — no installation needed.
 
 ### Import Inventory from a Spreadsheet
 
-Open **Settings** and use **Import Inventory** to upload a CSV exported from Excel or Google Sheets. The file must include these columns:
+Open **Settings** and use **Import Inventory** to upload a CSV exported from Excel or Google Sheets, or upload an `.xlsx`/`.xls` workbook directly. The file must include these columns:
 
 ```text
 name,category,price,quantity,unit

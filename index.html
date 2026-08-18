@@ -287,12 +287,12 @@
         </div>
         <div class="settings-card">
           <h3>📥 Import Inventory</h3>
-          <p class="settings-help">Upload a CSV spreadsheet with columns for name, category, price, quantity, and unit. Imported items are added to the current inventory.</p>
+          <p class="settings-help">Upload a CSV or Excel spreadsheet with columns for name, category, price, quantity, and unit. Imported items are added to the current inventory.</p>
           <button type="button" id="download-inventory-template" class="btn btn-ghost btn-full">⬇ Download Template</button>
           <form id="inventory-import-form">
             <div class="form-group">
-              <label for="inventory-file">Inventory CSV file</label>
-              <input id="inventory-file" type="file" accept=".csv,text/csv" required />
+              <label for="inventory-file">Inventory spreadsheet</label>
+              <input id="inventory-file" type="file" accept=".csv,.xlsx,.xls,text/csv,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet,application/vnd.ms-excel" required />
             </div>
             <div id="inventory-import-msg" class="alert hidden" role="status" aria-live="polite"></div>
             <button type="submit" class="btn btn-primary btn-full">⬆ Import Inventory</button>
@@ -377,6 +377,7 @@
 <!-- Toast -->
 <div id="toast" class="toast hidden" role="alert" aria-live="assertive"></div>
 
+<script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
 <script src="app.js"></script>
 </body>
 </html>
