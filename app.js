@@ -716,9 +716,10 @@ async function handleInventoryImport(e) {
     showImportMessage(errors.slice(0, 3).join(' ') + (errors.length > 3 ? ` Plus ${errors.length - 3} more error(s).` : ''), 'error');
     return;
   }
-  if (!confirm(`Replace the current inventory with ${items.length} item(s)?`)) return;
+  const existingItems = getInv();
+  if (!confirm(`Add ${items.length} item(s) to the existing inventory?`)) return;
 
-  saveInv(items);
+  saveInv([...existingItems, ...items]);
   renderInv(document.getElementById('inv-search').value);
   document.getElementById('inventory-import-form').reset();
   showImportMessage(`${items.length} item(s) imported successfully.`, 'success');

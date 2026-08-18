@@ -29,7 +29,7 @@ Open **Settings** and use **Import Inventory** to upload a CSV exported from Exc
 name,category,price,quantity,unit
 ```
 
-`name`, `price`, and `quantity` are required. The import replaces the current inventory after validation and confirmation. Use **Download Template** in Settings to get a ready-to-fill example.
+`name`, `price`, and `quantity` are required. Imported rows are added to the current inventory after validation and confirmation. Use **Download Template** in Settings to get a ready-to-fill example.
 
 ---
 
