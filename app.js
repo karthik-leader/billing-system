@@ -9,6 +9,18 @@ const K = {
   SESSION: 'be_session',
 };
 
+const firebaseConfig = {
+  apiKey: 'AIzaSyAuKIeslqGOIhmKZ2sNXVQtxE3cg5f2v20',
+  authDomain: 'billing-system-1fb59.firebaseapp.com',
+  projectId: 'billing-system-1fb59',
+  storageBucket: 'billing-system-1fb59.firebasestorage.app',
+  messagingSenderId: '225313037493',
+  appId: '1:225313037493:web:892b3413b95e1bafe872fc',
+};
+
+let cloudDoc = null;
+let cloudReady = false;
+
 /* ═══════════════════════════════════════════════════════ STATE ══ */
 let cart          = [];
 let editingItemId = null;
@@ -21,14 +33,54 @@ function load(key, def) {
 }
 function save(key, val) { localStorage.setItem(key, JSON.stringify(val)); }
 
+function saveShared(key, val) {
+  save(key, val);
+  if (!cloudReady || !cloudDoc || ![K.INV, K.SALES, K.SHOP].includes(key)) return;
+  cloudDoc.set({
+    inventory: getInv(),
+    sales: getSales(),
+    shop: getShop(),
+    updatedAt: firebase.firestore.FieldValue.serverTimestamp(),
+  }, { merge: true }).catch(() => toast('Cloud sync failed. Changes remain saved locally.', 'warning'));
+}
+
+function connectCloud() {
+  try {
+    const app = firebase.initializeApp(firebaseConfig);
+    cloudDoc = app.firestore().collection('billingData').doc('shared');
+    cloudDoc.onSnapshot((snapshot) => {
+      if (snapshot.exists) {
+        const data = snapshot.data();
+        if (Array.isArray(data.inventory)) save(K.INV, data.inventory);
+        if (Array.isArray(data.sales)) save(K.SALES, data.sales);
+        if (data.shop && typeof data.shop === 'object') save(K.SHOP, data.shop);
+        cloudReady = true;
+        renderInv(document.getElementById('inv-search').value);
+        renderSaleItems(document.getElementById('sale-search').value);
+        renderReport();
+      } else {
+        cloudReady = true;
+        cloudDoc.set({
+          inventory: getInv(),
+          sales: getSales(),
+          shop: getShop(),
+          updatedAt: firebase.firestore.FieldValue.serverTimestamp(),
+        }).catch(() => toast('Cloud setup failed. Changes remain saved locally.', 'warning'));
+      }
+    }, () => toast('Cloud sync unavailable. Changes remain saved locally.', 'warning'));
+  } catch (error) {
+    toast('Cloud sync unavailable. Changes remain saved locally.', 'warning');
+  }
+}
+
 const getCreds   = () => load(K.CREDS, { username: 'admin', password: 'admin123' });
 const saveCreds  = (c) => save(K.CREDS, c);
 const getInv     = () => load(K.INV,   []);
-const saveInv    = (d) => save(K.INV,  d);
+const saveInv    = (d) => saveShared(K.INV,  d);
 const getSales   = () => load(K.SALES, []);
-const saveSales  = (d) => save(K.SALES, d);
+const saveSales  = (d) => saveShared(K.SALES, d);
 const getShop    = () => load(K.SHOP,  { name: 'My Shop', address: '', phone: '', gst: '' });
-const saveShop   = (d) => save(K.SHOP,  d);
+const saveShop   = (d) => saveShared(K.SHOP,  d);
 
 /* ════════════════════════════════════════════════════ HELPERS ══ */
 const fmt  = (n) => '₹' + parseFloat(n || 0).toFixed(2);
@@ -777,6 +829,7 @@ function init() {
   /* Bootstrap defaults */
   if (!localStorage.getItem(K.CREDS)) saveCreds({ username: 'admin', password: 'admin123' });
   loadSampleData();
+  connectCloud();
 
   /* Set today's date in report */
   const today = new Date().toISOString().slice(0, 10);

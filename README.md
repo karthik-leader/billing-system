@@ -1,6 +1,6 @@
 # BillEase – Smart Billing System
 
-A complete, browser-based billing system. No server required — all data is stored locally in the browser via `localStorage`.
+A complete, browser-based billing system with shared Firebase Firestore data and a local browser cache fallback.
 
 ## Features
 
@@ -30,6 +30,23 @@ name,category,price,quantity,unit
 ```
 
 `name`, `price`, and `quantity` are required. Imported rows are added to the current inventory after validation and confirmation. Use **Download Template** in Settings to get a ready-to-fill example.
+
+### Firebase Cloud Sync
+
+Inventory, sales, and shop settings sync through the Firebase project configured in `index.html`. In Firebase Console, create a **Firestore Database** and configure rules for the shared document. For initial testing, the rules can be:
+
+```text
+rules_version = '2';
+service cloud.firestore {
+	match /databases/{database}/documents {
+		match /billingData/shared {
+			allow read, write: if true;
+		}
+	}
+}
+```
+
+These rules are intentionally open and should be replaced with authenticated-user rules before production use. The existing local admin password is not a secure substitute for Firebase Authentication.
 
 ---
 
@@ -79,10 +96,7 @@ Share that link with anyone — it's publicly accessible, free, and always up-to
 
 ## Data & Privacy
 
-All data (inventory, sales, settings) is stored in the **browser's localStorage** on the device being used.  
-- Each device/browser has its own independent data store.  
-- Clearing browser data will erase records.  
-- For multi-device shared data, a backend database would be needed.
+Inventory, sales, and shop settings are synced to Firebase Firestore. The browser also keeps a local cache so the app can start when the network is temporarily unavailable. Login credentials and the refresh session remain local to each browser until Firebase Authentication is added.
 
 ---
 
