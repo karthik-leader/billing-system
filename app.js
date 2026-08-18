@@ -6,6 +6,7 @@ const K = {
   INV:   'be_inv',
   SALES: 'be_sales',
   SHOP:  'be_shop',
+  SESSION: 'be_session',
 };
 
 /* ═══════════════════════════════════════════════════════ STATE ══ */
@@ -77,6 +78,7 @@ function handleLogin(e) {
   const creds = getCreds();
 
   if (user === creds.username && pass === creds.password) {
+    save(K.SESSION, { username: user });
     document.getElementById('login-screen').classList.add('hidden');
     document.getElementById('app').classList.remove('hidden');
     document.getElementById('current-user').textContent = '👤 ' + user;
@@ -90,6 +92,7 @@ function handleLogin(e) {
 
 function handleLogout() {
   if (!confirm('Log out?')) return;
+  localStorage.removeItem(K.SESSION);
   document.getElementById('app').classList.add('hidden');
   document.getElementById('login-screen').classList.remove('hidden');
   document.getElementById('login-user').value = '';
@@ -821,6 +824,14 @@ function init() {
   document.getElementById('pwd-form').addEventListener('submit',  handlePwdForm);
   document.getElementById('inventory-import-form').addEventListener('submit', handleInventoryImport);
   document.getElementById('download-inventory-template').addEventListener('click', downloadInventoryTemplate);
+
+  const session = load(K.SESSION, null);
+  if (session && session.username === getCreds().username) {
+    document.getElementById('login-screen').classList.add('hidden');
+    document.getElementById('app').classList.remove('hidden');
+    document.getElementById('current-user').textContent = '👤 ' + session.username;
+    navigateTo('inventory');
+  }
 
   /* Keyboard: Esc closes modals */
   document.addEventListener('keydown', (e) => {
