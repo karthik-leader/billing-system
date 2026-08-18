@@ -60,6 +60,7 @@ function navigateTo(page) {
   document.querySelectorAll('.page').forEach(p => {
     const active = p.id === `${page}-page`;
     p.classList.toggle('active', active);
+    p.classList.toggle('hidden', !active);
     p.style.display = active ? 'block' : 'none';
   });
   if (page === 'inventory') renderInv();
