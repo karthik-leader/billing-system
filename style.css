@@ -304,6 +304,8 @@ table { min-width: 680px; }
   padding: 24px;
 }
 .settings-card h3 { font-size: 15px; margin-bottom: 18px; color: var(--text); }
+.settings-help { color: var(--text-sm); font-size: 13px; margin-bottom: 16px; }
+input[type="file"] { width: 100%; padding: 8px 0; color: var(--text-md); font-size: 13px; }
 
 /* ═══════════════════════════════════════════════ FORM COMMON ══ */
 .form-group { display: flex; flex-direction: column; gap: 5px; margin-bottom: 14px; }

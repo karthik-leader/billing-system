@@ -10,7 +10,7 @@ A complete, browser-based billing system. No server required — all data is sto
 | **Inventory** | Add / edit / delete items; adjust stock with + / − buttons |
 | **New Sale** | Click items to add to bill, set discount & GST, generate & print receipt |
 | **Daily Report** | View all transactions by date; print a formatted daily report |
-| **Settings** | Update shop info (name, address, GST no.) and change password |
+| **Settings** | Update shop info, import inventory from a CSV spreadsheet, and change password |
 
 **Default credentials:** `admin` / `admin123`  
 Change your password from the Settings screen after first login.
@@ -20,6 +20,16 @@ Change your password from the Settings screen after first login.
 ## Local Usage
 
 Just open `index.html` in any modern browser — no installation needed.
+
+### Import Inventory from a Spreadsheet
+
+Open **Settings** and use **Import Inventory** to upload a CSV exported from Excel or Google Sheets. The file must include these columns:
+
+```text
+name,category,price,quantity,unit
+```
+
+`name`, `price`, and `quantity` are required. The import replaces the current inventory after validation and confirmation. Use **Download Template** in Settings to get a ready-to-fill example.
 
 ---
 

@@ -637,6 +637,104 @@ function flashMsg(el, text, type) {
   setTimeout(() => { el.className = 'alert hidden'; }, 4000);
 }
 
+/* ═════════════════════════════════════════════ INVENTORY IMPORT ══ */
+function parseCSV(text) {
+  const rows = [];
+  let row = [], value = '', quoted = false;
+
+  for (let i = 0; i < text.length; i++) {
+    const char = text[i];
+    const next = text[i + 1];
+    if (char === '"' && quoted && next === '"') { value += '"'; i++; }
+    else if (char === '"') quoted = !quoted;
+    else if (char === ',' && !quoted) { row.push(value.trim()); value = ''; }
+    else if ((char === '\n' || char === '\r') && !quoted) {
+      if (char === '\r' && next === '\n') i++;
+      row.push(value.trim());
+      if (row.some(cell => cell !== '')) rows.push(row);
+      row = []; value = '';
+    } else value += char;
+  }
+  if (value || row.length) {
+    row.push(value.trim());
+    if (row.some(cell => cell !== '')) rows.push(row);
+  }
+  return rows;
+}
+
+function normalizedHeader(value) {
+  return value.toLowerCase().replace(/[^a-z0-9]/g, '');
+}
+
+function showImportMessage(text, type) {
+  const msg = document.getElementById('inventory-import-msg');
+  msg.textContent = text;
+  msg.className = `alert alert-${type}`;
+}
+
+async function handleInventoryImport(e) {
+  e.preventDefault();
+  const file = document.getElementById('inventory-file').files[0];
+  if (!file) return;
+
+  const rows = parseCSV((await file.text()).replace(/^\uFEFF/, ''));
+  if (rows.length < 2) { showImportMessage('The spreadsheet must include a header row and at least one item.', 'error'); return; }
+
+  const headers = rows[0].map(normalizedHeader);
+  const column = (names) => names.map(normalizedHeader).map(name => headers.indexOf(name)).find(index => index !== -1);
+  const nameCol = column(['name', 'item', 'itemname']);
+  const priceCol = column(['price', 'rate', 'unitprice']);
+  const quantityCol = column(['quantity', 'qty', 'stock']);
+  const categoryCol = column(['category']);
+  const unitCol = column(['unit', 'uom']);
+
+  if (nameCol === undefined || priceCol === undefined || quantityCol === undefined) {
+    showImportMessage('Required columns are name, price, and quantity.', 'error');
+    return;
+  }
+
+  const errors = [];
+  const items = rows.slice(1).map((row, index) => {
+    const line = index + 2;
+    const name = row[nameCol] || '';
+    const price = Number(row[priceCol]);
+    const quantity = Number(row[quantityCol]);
+    if (!name) errors.push(`Row ${line}: name is required.`);
+    if (!Number.isFinite(price) || price < 0) errors.push(`Row ${line}: price must be a non-negative number.`);
+    if (!Number.isInteger(quantity) || quantity < 0) errors.push(`Row ${line}: quantity must be a non-negative whole number.`);
+    return {
+      id: Date.now() + index,
+      name,
+      category: categoryCol === undefined ? '' : (row[categoryCol] || ''),
+      price,
+      quantity,
+      unit: unitCol === undefined ? 'pcs' : (row[unitCol] || 'pcs'),
+    };
+  });
+
+  if (errors.length) {
+    showImportMessage(errors.slice(0, 3).join(' ') + (errors.length > 3 ? ` Plus ${errors.length - 3} more error(s).` : ''), 'error');
+    return;
+  }
+  if (!confirm(`Replace the current inventory with ${items.length} item(s)?`)) return;
+
+  saveInv(items);
+  renderInv(document.getElementById('inv-search').value);
+  document.getElementById('inventory-import-form').reset();
+  showImportMessage(`${items.length} item(s) imported successfully.`, 'success');
+  toast('Inventory imported.');
+}
+
+function downloadInventoryTemplate() {
+  const csv = 'name,category,price,quantity,unit\nBasmati Rice,Groceries,85,50,kg\n';
+  const url = URL.createObjectURL(new Blob([csv], { type: 'text/csv;charset=utf-8' }));
+  const link = document.createElement('a');
+  link.href = url;
+  link.download = 'inventory-template.csv';
+  link.click();
+  URL.revokeObjectURL(url);
+}
+
 /* ═══════════════════════════════════════════ SAMPLE DATA ══ */
 function loadSampleData() {
   if (getInv().length > 0) return;
@@ -704,6 +802,8 @@ function init() {
   /* ── Settings ── */
   document.getElementById('shop-form').addEventListener('submit', handleShopForm);
   document.getElementById('pwd-form').addEventListener('submit',  handlePwdForm);
+  document.getElementById('inventory-import-form').addEventListener('submit', handleInventoryImport);
+  document.getElementById('download-inventory-template').addEventListener('click', downloadInventoryTemplate);
 
   /* Keyboard: Esc closes modals */
   document.addEventListener('keydown', (e) => {
