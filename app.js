@@ -10,7 +10,7 @@ const K = {
 };
 
 const firebaseConfig = {
-  apiKey: 'AIzaSyAuKIeslqGOIhmKZ2sNXVQtxE3cg5f2v20',
+  apiKey: 'AIzaSyBDYt8h2saGtjI3DEvUhcZ7y_W4yqDBIBs',
   authDomain: 'billing-system-1fb59.firebaseapp.com',
   projectId: 'billing-system-1fb59',
   storageBucket: 'billing-system-1fb59.firebasestorage.app',
